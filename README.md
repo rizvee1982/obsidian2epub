@@ -84,7 +84,7 @@ create_epub(
 
 ## Markdown File Format
 
-Your markdown files should include YAML frontmatter with the following fields:
+Your markdown files should include YAML frontmatter with the following fields, based on the standard Obsidian Web Sli:
 ```yaml
 ---
 title: Article Title
@@ -94,7 +94,6 @@ source: URL
 tags: [tag1, tag2]
 ---
 ```
-
 
 ## Contributing
 
