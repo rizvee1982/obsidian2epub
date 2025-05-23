@@ -16,90 +16,43 @@ import uuid
 def sanitize_content(content):
     """Sanitize content for EPUB compatibility while preserving special characters.
     
-    Removes problematic characters while preserving common special characters like:
-    - Smart quotes ('', "")
-    - Em/en dashes (–, —)
-    - Apostrophes (')
-    - Other common special characters
+    This function processes text content to ensure EPUB compatibility while maintaining
+    proper typography. It preserves important special characters like em dashes and
+    en dashes while replacing problematic characters with safe alternatives.
+    
+    Args:
+        content (str): The HTML content to sanitize.
+        
+    Returns:
+        str: Sanitized content with preserved special characters and removed problematic ones.
     """
     # Remove NULL bytes and control characters
     content = re.sub(r'[\x00-\x08\x0b-\x0c\x0e-\x1F\uFFFE\uFFFF]', '', content)
     
-    # Replace problematic characters with their safe alternatives
-    replacements = {
-        '\u2018': "'",  # Left single quote
-        '\u2019': "'",  # Right single quote
-        '\u201C': '"',  # Left double quote
-        '\u201D': '"',  # Right double quote
-        '\u2026': '...', # Ellipsis
-        '\u2022': '•',  # Bullet point
-        '\u2010': '-',  # Hyphen
-        '\u2011': '-',  # Non-breaking hyphen
-        '\u2012': '-',  # Figure dash
-        '\u2015': '--', # Horizontal bar
-        '\u2024': '.',  # One dot leader
-        '\u2025': '..', # Two dot leader
-        '\u2027': '·',  # Hyphenation point
-        '\u2032': "'",  # Prime
-        '\u2033': '"',  # Double prime
-        '\u2034': '"',  # Triple prime
-        '\u2035': "'",  # Reversed prime
-        '\u2036': '"',  # Reversed double prime
-        '\u2037': '"',  # Reversed triple prime
-        '\u2038': '^',  # Caret
-        '\u2039': '<',  # Single left-pointing angle quote
-        '\u203A': '>',  # Single right-pointing angle quote
-        '\u203B': '*',  # Reference mark
-        '\u203C': '!!', # Double exclamation mark
-        '\u203D': '?',  # Interrobang
-        '\u203E': '_',  # Overline
-        '\u2041': '*',  # Caret insertion point
-        '\u2042': '§',  # Asterism
-        '\u2043': '-',  # Hyphen bullet
-        '\u2044': '/',  # Fraction slash
-        '\u2045': '[',  # Left square bracket with quill
-        '\u2046': ']',  # Right square bracket with quill
-        '\u2047': '??', # Double question mark
-        '\u2048': '?!', # Question exclamation mark
-        '\u2049': '!?', # Exclamation question mark
-        '\u204A': '§',  # Tironian sign et
-        '\u204B': '¶',  # Reversed pilcrow sign
-        '\u204C': '¶',  # Black leftwards bullet
-        '\u204D': '¶',  # Black rightwards bullet
-        '\u204E': '*',  # Low asterisk
-        '\u204F': ';',  # Reversed semicolon
-        '\u2050': '=0', # Close up
-        '\u2051': '**', # Two asterisks aligned vertically
-        '\u2052': '℠',  # Commercial minus sign
-        '\u2053': '~',  # Swung dash
-        '\u2054': '^',  # Inverted undertie
-        '\u2055': '*',  # Flower punctuation mark
-        '\u2056': '⁖',  # Three dot punctuation
-        '\u2057': '"',  # Quadruple prime
-        '\u2058': '⁘',  # Four dot punctuation
-        '\u2059': '⁙',  # Five dot punctuation
-        '\u205A': '⁚',  # Two dot punctuation
-        '\u205B': '⁛',  # Four dot mark
-        '\u205C': '⁜',  # Dotted cross
-        '\u205D': '⁝',  # Tricolon
-        '\u205E': '⁞',  # Vertical four dots
-        '\u205F': ' ',  # Mathematical space
-        '\u2060': '',   # Word joiner
-        '\u2061': '',   # Function application
-        '\u2062': '',   # Invisible times
-        '\u2063': '',   # Invisible separator
-        '\u2064': '',   # Invisible plus
-        '\u206A': '',   # Inhibit symmetric swapping
-        '\u206B': '',   # Activate symmetric swapping
-        '\u206C': '',   # Inhibit arabic form shaping
-        '\u206D': '',   # Activate arabic form shaping
-        '\u206E': '',   # National digit shapes
-        '\u206F': '',   # Nominal digit shapes
-    }
+    # # Replace problematic characters with their safe alternatives
+    # replacements = {
+    #     '\u2018': "'",  # Left single quote
+    #     '\u2019': "'",  # Right single quote
+    #     '\u201C': '"',  # Left double quote
+    #     '\u201D': '"',  # Right double quote
+    #     '\u2026': '...', # Ellipsis
+    #     '\u2022': '•',  # Bullet point
+    #     '\u2010': '-',  # Hyphen
+    #     '\u2011': '-',  # Non-breaking hyphen
+    #     '\u2012': '-',  # Figure dash
+    #     '\u2015': '--', # Horizontal bar
+    #     '\u2039': '<',  # Single left-pointing angle quote
+    #     '\u203A': '>',  # Single right-pointing angle quote
+    #     '\u2060': '',   # Word joiner
+    #     '\u2061': '',   # Function application
+    #     '\u2062': '',   # Invisible times
+    #     '\u2063': '',   # Invisible separator
+    #     '\u2064': '',   # Invisible plus
+    # }
     
-    # Apply replacements
-    for char, replacement in replacements.items():
-        content = content.replace(char, replacement)
+    # # Apply replacements
+    # for char, replacement in replacements.items():
+    #     content = content.replace(char, replacement)
     
     # Remove any remaining non-printable characters
     content = ''.join(char for char in content if char.isprintable())
@@ -107,6 +60,19 @@ def sanitize_content(content):
     return content
 
 def process_image(src, book):
+    """Process and optimize an image for EPUB format.
+    
+    Downloads an image from a URL, resizes it if necessary for Kindle compatibility,
+    and optimizes it for EPUB format. The image is converted to RGB and compressed
+    to reduce file size while maintaining quality.
+    
+    Args:
+        src (str): URL of the image to process.
+        book (epub.EpubBook): The EPUB book instance to add the image to.
+        
+    Returns:
+        str: Internal path of the processed image in the EPUB, or None if processing fails.
+    """
     try:
         encoded_src = quote(src, safe='/:')
         response = requests.get(encoded_src, stream=True)
@@ -149,9 +115,18 @@ def process_image(src, book):
     return None
 
 
-## cha
 def parse_frontmatter(content):
-    """Parses the frontmatter YAML from the Markdown content."""
+    """Parse YAML frontmatter from Markdown content.
+    
+    Extracts and parses the YAML frontmatter section from the beginning of a Markdown file.
+    The frontmatter should be delimited by '---' markers.
+    
+    Args:
+        content (str): The full content of the Markdown file.
+        
+    Returns:
+        dict: Parsed frontmatter as a dictionary, or None if no frontmatter is found.
+    """
     try:
         frontmatter_match = re.search(r"^---\n(.*?)\n---", content, re.DOTALL | re.MULTILINE)
         if frontmatter_match:
@@ -167,11 +142,17 @@ def parse_frontmatter(content):
 
 
 def append_tag_to_frontmatter(f, new_tag):
-    """Appends a tag to the frontmatter of a Markdown file.
-
+    """Append a tag to the frontmatter of a Markdown file.
+    
+    Adds a new tag to the tags list in the YAML frontmatter of a Markdown file.
+    If the tag already exists, no changes are made.
+    
     Args:
-        f: Open file object of the Markdown file (must be opened in 'r+' mode).
-        new_tag: The tag to append.
+        f (file): Open file object of the Markdown file (must be opened in 'r+' mode).
+        new_tag (str): The tag to append to the frontmatter.
+        
+    Returns:
+        bool: True if the tag was added successfully, False otherwise.
     """
     f.seek(0)
     content = f.read()
@@ -221,6 +202,22 @@ def append_tag_to_frontmatter(f, new_tag):
 
 
 def create_chapter(filepath, book, tag_name, tag_criteria='does not contain'):
+    """Create an EPUB chapter from a Markdown file.
+    
+    Processes a Markdown file into an EPUB chapter, including metadata from frontmatter,
+    content formatting, and image processing. The chapter is added to the book and
+    tagged appropriately.
+    
+    Args:
+        filepath (str): Path to the Markdown file.
+        book (epub.EpubBook): The EPUB book instance to add the chapter to.
+        tag_name (str): Tag to filter files by.
+        tag_criteria (str, optional): How to filter by tag - 'contains' or 'does not contain'.
+            Defaults to 'does not contain'.
+            
+    Returns:
+        epub.EpubHtml: The created chapter, or None if creation fails.
+    """
     with open(filepath, 'r+', encoding='utf-8') as f:
         content = f.read()
         frontmatter = parse_frontmatter(content)
@@ -354,16 +351,25 @@ def create_cover(publications, date_str):
 
 
 def create_epub(markdown_folder, tag_name, output_path, tag_criteria='does not contain', num_entries=None, selection_mode='newest', progress_callback=None):
-    """Creates the EPUB book from Markdown files.
+    """Create an EPUB book from Markdown files.
+    
+    Creates an EPUB book from a collection of Markdown files, filtering by tags and
+    applying selection criteria. The book includes proper navigation, metadata, and
+    formatted content.
     
     Args:
-        markdown_folder (str): Path to folder containing markdown files
-        tag_name (str): Tag to filter files by
-        output_path (str): Path to save EPUB file
-        tag_criteria (str): How to filter by tag - 'contains' or 'does not contain'
-        num_entries (int, optional): Number of entries to include. If None, includes all entries
-        selection_mode (str): How to select entries - 'random', 'newest', or 'oldest'
-        progress_callback (callable, optional): Function to call with progress updates
+        markdown_folder (str): Path to folder containing markdown files.
+        tag_name (str): Tag to filter files by.
+        output_path (str): Path to save the EPUB file.
+        tag_criteria (str, optional): How to filter by tag - 'contains' or 'does not contain'.
+            Defaults to 'does not contain'.
+        num_entries (int, optional): Number of entries to include. If None, includes all entries.
+        selection_mode (str, optional): How to select entries - 'random', 'newest', or 'oldest'.
+            Defaults to 'newest'.
+        progress_callback (callable, optional): Function to call with progress updates.
+            
+    Raises:
+        ValueError: If no files match the tag criteria or if output directory creation fails.
     """
     # Create output directory if it doesn't exist
     output_dir = os.path.dirname(output_path)
@@ -494,11 +500,11 @@ def create_epub(markdown_folder, tag_name, output_path, tag_criteria='does not c
 
 if __name__ == "__main__":
     try:
-        markdown_folder = r"/Users/adnan/Library/Mobile Documents/com~apple~CloudDocs/Docs/Misc/Writing/Adnan's Vault/Pocket"
-        tag_name = "muscle"
+        markdown_folder = "/Users/adnan/Library/Mobile Documents/iCloud~md~obsidian/Documents/Adnan's Vault/Pocket"
+        tag_name = "archive"
         output_filename = "articles.epub"
         output_folder = r"/Users/adnan/Desktop/moved_to_kindle"
         output_path = os.path.join(output_folder, output_filename)
-        create_epub(markdown_folder, tag_name, output_path, num_entries=10, selection_mode='newest', tag_criteria='contains')
+        create_epub(markdown_folder, tag_name, output_path, num_entries=10, selection_mode='newest', tag_criteria='does not contain')
     except Exception as e:
         print(f"Error: {str(e)}")
